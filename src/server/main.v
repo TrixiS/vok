@@ -78,11 +78,12 @@ fn handle_client(mut conn net.TcpConn, req_conn_lis &Listener, res_conn_lis &Lis
 						res_conn.set_read_timeout(conn_timeout)
 						res_conn.set_write_timeout(conn_timeout)
 
-						go fn (mut req_conn net.TcpConn, mut res_conn net.TcpConn) ! {
-							proxy.bidirectional(mut req_conn, mut res_conn)
-							req_conn.close()!
-							res_conn.close()!
-						}(mut req_conn, mut res_conn)
+						// TODO: uncomment this when v coroutines will somewhat work
+						// go fn (mut req_conn net.TcpConn, mut res_conn net.TcpConn) ! {
+						proxy.bidirectional(mut req_conn, mut res_conn)
+						req_conn.close()!
+						res_conn.close()!
+						// }(mut req_conn, mut res_conn)
 					}
 					res_timeout {
 						return err_res_timeout
