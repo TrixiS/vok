@@ -10,11 +10,16 @@ import dotenv
 const reconnection_delay = time.second * 1
 
 fn main() {
-	dotenv.load() or {}
+	if os.args.len < 2 {
+		eprintln('specify local address like `vok :8000`')
+		return
+	}
 
+	dotenv.load() or { eprintln('failed to load .env: ${err}') }
+
+	local_addr := os.args[1]
 	server_addr := os.getenv('SERVER_ADDR')
 	res_addr := os.getenv('RES_ADDR')
-	local_addr := os.args[1]
 
 	for {
 		mut conn := net.dial_tcp(server_addr)!
