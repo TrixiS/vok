@@ -5,20 +5,20 @@ import time
 import messages
 import proxy
 
-const client_addr = 'localhost:8001' // listen vok clients from this address (ping/pong)
+const server_addr = 'localhost:8001' // listen vok clients from this address (ping/pong)
 const req_addr = 'localhost:8002' // listen requests from this address
 const res_addr = 'localhost:8003' // listen responses from this address
 
-const res_timeout = time.second * 5
-
-const ping_interval = time.millisecond * 800
+const ping_interval = i64(time.millisecond * 800)
 const ping_timeout = time.millisecond * 500
+
+const res_timeout = i64(time.second * 5)
 
 const err_expected_pong = error('expected pong')
 const err_res_timeout = error('expected response')
 
 fn main() {
-	client_lis := Listener.new(client_addr)!
+	client_lis := Listener.new(server_addr)!
 
 	for {
 		mut client_conn := <-client_lis.conn_chan
@@ -59,12 +59,12 @@ fn handle_client(mut conn net.TcpConn, req_conn_lis &Listener, res_conn_lis &Lis
 							res_conn.close()!
 						}(mut req_conn, mut res_conn)
 					}
-					i64(res_timeout) {
+					res_timeout {
 						return err_res_timeout
 					}
 				}
 			}
-			i64(ping_interval) {
+			ping_interval {
 				conn.write(messages.ping)!
 
 				mut buf := []u8{len: messages.pong.len}

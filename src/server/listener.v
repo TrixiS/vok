@@ -18,9 +18,9 @@ fn Listener.new(addr string) !&Listener {
 	return l
 }
 
-fn (mut l Listener) listen() ! {
+fn (mut l Listener) listen() {
 	for {
-		mut conn := l.lis.accept()!
+		mut conn := l.lis.accept() or { break }
 		l.conn_chan <- conn
 	}
 }

@@ -1,24 +1,30 @@
 module main
 
+import time
 import net
 import messages
 import proxy
 
-const client_addr = 'localhost:8001' // listen vok clients from this address (ping/pong)
+const server_addr = 'localhost:8001' // listen vok clients from this address (ping/pong)
 const req_addr = 'localhost:8002' // listen requests from this address
 const res_addr = 'localhost:8003' // listen responses from this address
 
 const local_addr = 'localhost:8000'
 
+const reconnection_delay = time.second * 1
+
 fn main() {
 	for {
-		mut conn := net.dial_tcp(client_addr)!
+		mut conn := net.dial_tcp(server_addr)!
 
 		for {
 			mut buf := []u8{len: messages.buf_len}
-			n := conn.read(mut buf)!
+			n := conn.read(mut buf) or { break }
 			handle_message(mut conn, buf[..n]) or { break }
 		}
+
+		conn.close() or {}
+		time.sleep(reconnection_delay)
 	}
 }
 
