@@ -1,30 +1,41 @@
 module main
 
+import os
+import flag
 import net
 import time
 import messages
 import proxy
 
-const server_addr = 'localhost:8001' // listen vok clients from this address (ping/pong)
-const req_addr = 'localhost:8002' // listen requests from this address
-const res_addr = 'localhost:8003' // listen responses from this address
-
 const ping_interval = i64(time.millisecond * 800)
 const ping_timeout = time.millisecond * 500
-
 const res_timeout = i64(time.second * 5)
 
 const err_expected_pong = error('expected pong')
 const err_res_timeout = error('expected response')
 
+struct Config {
+	serve_addr string @[xdoc: 'vok client connections listen address']
+	req_addr   string @[xdoc: 'request connections listen address (usually public)']
+	res_addr   string @[xdoc: 'response connections listen address']
+}
+
 fn main() {
-	client_lis := Listener.new(server_addr)!
+	config, _ := flag.to_struct[Config](os.args, skip: 1)!
+
+	if config.serve_addr.len == 0 || config.req_addr.len == 0 || config.res_addr.len == 0 {
+		doc := flag.to_doc[Config]()!
+		println(doc)
+		return
+	}
+
+	client_lis := Listener.new(config.serve_addr)!
 
 	for {
 		mut client_conn := <-client_lis.conn_chan
 
-		mut req_conn_lis := Listener.new(req_addr)!
-		mut res_conn_lis := Listener.new(res_addr)!
+		mut req_conn_lis := Listener.new(config.req_addr)!
+		mut res_conn_lis := Listener.new(config.res_addr)!
 
 		client_conn.set_read_timeout(ping_timeout)
 		client_conn.set_write_timeout(ping_timeout)
