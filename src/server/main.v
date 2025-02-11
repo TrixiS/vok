@@ -7,7 +7,7 @@ import time
 import messages
 import proxy
 
-const ping_interval = i64(time.millisecond * 800)
+const ping_interval = i64(time.second * 1)
 const ping_timeout = time.millisecond * 500
 const res_timeout = i64(time.second * 5)
 
@@ -24,12 +24,13 @@ fn main() {
 	config, _ := flag.to_struct[Config](os.args, skip: 1)!
 
 	if config.serve_addr.len == 0 || config.req_addr.len == 0 || config.res_addr.len == 0 {
-		doc := flag.to_doc[Config]()!
-		println(doc)
+		println(flag.to_doc[Config]()!)
 		return
 	}
 
 	client_lis := Listener.new(config.serve_addr)!
+
+	println('started on ${config.serve_addr}')
 
 	for {
 		mut client_conn := <-client_lis.conn_chan
@@ -52,10 +53,16 @@ fn handle_client(mut conn net.TcpConn, req_conn_lis &Listener, res_conn_lis &Lis
 	for {
 		select {
 			mut req_conn := <-req_conn_lis.conn_chan {
-				conn.write(messages.ack)!
+				conn.write(messages.ack) or {
+					req_conn.close()!
+					return err
+				}
 
 				mut buf := []u8{len: messages.buf_len}
-				n := conn.read(mut buf)!
+				n := conn.read(mut buf) or {
+					req_conn.close()!
+					return err
+				}
 
 				if buf[..n] != messages.ack {
 					req_conn.close()!
