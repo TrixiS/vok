@@ -18,14 +18,7 @@ fn parse(filepath string) ! {
 
 pub fn load() ! {
 	exe := os.executable()
-
-	cwd := if os.is_link(os.executable()) {
-		real_path := os.real_path(exe)
-		os.dir(real_path)
-	} else {
-		os.getwd()
-	}
-
+	cwd := os.dir(exe)
 	dotenv_filepath := os.join_path(cwd, '.env')
 	return parse(dotenv_filepath)
 }
