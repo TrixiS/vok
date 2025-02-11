@@ -2,17 +2,15 @@ module proxy
 
 import io
 import net
-import context
 
 pub fn bidirectional(mut conn1 net.TcpConn, mut conn2 net.TcpConn) {
-	mut bg_ctx := context.background()
-	mut ctx, cancel := context.with_cancel(mut bg_ctx)
-	go cp(mut conn1, mut conn2, cancel)
-	go cp(mut conn2, mut conn1, cancel)
-	_ = <-ctx.done()
+	c := chan u8{}
+	go cp(mut conn1, mut conn2, c)
+	go cp(mut conn2, mut conn1, c)
+	_ = <-c
 }
 
-fn cp(mut conn1 net.TcpConn, mut conn2 net.TcpConn, cancel context.CancelFn) {
+fn cp(mut conn1 net.TcpConn, mut conn2 net.TcpConn, c chan u8) {
 	io.cp(mut conn1, mut conn2) or {}
-	cancel()
+	c <- 0
 }
