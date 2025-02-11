@@ -10,6 +10,7 @@ import proxy
 const ping_interval = i64(time.second * 1)
 const ping_timeout = time.millisecond * 500
 const res_timeout = i64(time.second * 5)
+const conn_timeout = time.second
 
 const err_expected_pong = error('expected pong')
 const err_res_timeout = error('expected response')
@@ -69,10 +70,17 @@ fn handle_client(mut conn net.TcpConn, req_conn_lis &Listener, res_conn_lis &Lis
 					continue
 				}
 
+				req_conn.set_read_timeout(conn_timeout)
+				req_conn.set_write_timeout(conn_timeout)
+
 				select {
 					mut res_conn := <-res_conn_lis.conn_chan {
+						res_conn.set_read_timeout(conn_timeout)
+						res_conn.set_write_timeout(conn_timeout)
+
 						go fn (mut req_conn net.TcpConn, mut res_conn net.TcpConn) ! {
 							proxy.bidirectional(mut req_conn, mut res_conn)
+							println('exit')
 							req_conn.close()!
 							res_conn.close()!
 						}(mut req_conn, mut res_conn)
