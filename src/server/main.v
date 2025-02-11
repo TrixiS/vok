@@ -80,7 +80,6 @@ fn handle_client(mut conn net.TcpConn, req_conn_lis &Listener, res_conn_lis &Lis
 
 						go fn (mut req_conn net.TcpConn, mut res_conn net.TcpConn) ! {
 							proxy.bidirectional(mut req_conn, mut res_conn)
-							println('exit')
 							req_conn.close()!
 							res_conn.close()!
 						}(mut req_conn, mut res_conn)
