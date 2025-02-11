@@ -21,6 +21,8 @@ fn main() {
 	server_addr := os.getenv('SERVER_ADDR')
 	res_addr := os.getenv('RES_ADDR')
 
+	println('dialing server address: ${server_addr}')
+
 	for {
 		mut conn := net.dial_tcp(server_addr)!
 
@@ -59,7 +61,7 @@ fn handle_message(mut conn net.TcpConn, message []u8, local_addr string, res_add
 			}(mut local_conn, res_addr)
 		}
 		else {
-			panic('invalid message ${message.bytestr()}')
+			eprintln('invalid message ${message.bytestr()}')
 		}
 	}
 }
